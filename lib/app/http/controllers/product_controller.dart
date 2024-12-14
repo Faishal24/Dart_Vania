@@ -9,7 +9,6 @@ class ProductController extends Controller {
   }
 
   Future<Response> create(Request request) async {
-    // prod_id vend_id prod_name prod_price prod_desc
     request.validate({
       'prod_id': 'required',
       'vend_id': 'required',
