@@ -16,29 +16,57 @@ class AuthController extends Controller {
     var password = request.input('password').toString();
 
     final Map<String, dynamic>? user =
-        await Users().query().where('email', email).first();
+        await Users().query().where('email', '=', email).first();
 
     if (user == null) {
-      return Response.json({'message': 'User not found'});
+      return Response.json({'message': 'User not found'}, 409);
     }
 
     if (email != user['email']) {
-      return Response.json({'message': 'Email is incorrect'});
+      return Response.json({'message': 'Invalid Credentials'}, 401);
     }
 
-    if (password != user['password']) {
-      return Response.json({'message': 'Password is incorrect'});
+    if (!Hash().verify(password, user['password'])) {
+      return Response.json({'message': 'Invalid Credentials'}, 401);
     }
 
     Map token = await Auth()
         .login(user)
         .createToken(expiresIn: Duration(days: 1), withRefreshToken: true);
 
-    return Response.json({"message": "Login success", "token": token});
+    return Response.json(token, 201);
   }
 
-  Future<Response> create() async {
-    return Response.json({'message': 'Create User'});
+  Future<Response> register(Request request) async {
+    request.validate({
+      'name': 'required',
+      'email': 'required|email',
+      'password': 'required'
+    }, {
+      'name.required': 'Name is required',
+      'email.required': 'Email is required',
+      'email.email': 'Email is not valid',
+      'password.required': 'Password is required'
+    });
+
+    final name = request.input('name');
+    final email = request.input('email');
+    var password = request.input('password');
+
+    var user = await Users().query().where('email', '=', email).first();
+    if (user != null) {
+      return Response.json({'message': 'User already exists'}, 209);
+    }
+
+    var hashedPassword = Hash().make(password);
+    await Users().query().create({
+      'name': name,
+      'email': email,
+      'password': hashedPassword,
+      'created_at': DateTime.now().toIso8601String(),
+    });
+
+    return Response.json({'message': 'User created successfully'}, 201);
   }
 
 }
