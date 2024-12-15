@@ -34,18 +34,6 @@ class CustomerController extends Controller {
     return Response.json({'message': 'Data has been created'});
   }
 
-  Future<Response> store(Request request) async {
-    return Response.json({});
-  }
-
-  Future<Response> show(int id) async {
-    return Response.json({});
-  }
-
-  Future<Response> edit(int id) async {
-    return Response.json({});
-  }
-
   Future<Response> update(Request request, String id) async {
     request.validate({
       'cust_name': 'required',
